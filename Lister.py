@@ -9,3 +9,6 @@ emnekoder = []
 semestre = []
 studiepoeng = []
 studieplan = []
+
+def lag_nytt_emne():
+    
