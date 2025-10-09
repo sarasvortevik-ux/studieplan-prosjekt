@@ -1,0 +1,6 @@
+print ("Menyvalg" \
+"1. lag et nytt emne" \
+"2. legg til et emne i studieplanen" \
+"3. skriv ut ei liste over alle emner i studieplanen"\
+"4. Skriv ut studieplanen med hvilke emner som er i hvert semester"
+)
