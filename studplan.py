@@ -116,7 +116,6 @@ def les_fra_fil():  # funksjon som leser inn filer
     print("Data lest inn fra fil.")
 
 #meny
-
 while True:  # hovedmeny som kjører helt til brukeren avslutter
     print()
     print("1. Lag et nytt emne")
