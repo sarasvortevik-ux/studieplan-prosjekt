@@ -1,0 +1,51 @@
+# studieplan_ekstremt_enkel.py
+# Dette er en helt enkel terminalversjon som alltid virker
+
+emner = []  # her lagres alle fagene
+
+# funksjon for å skrive ut listen
+def vis_emneliste():
+    print("\n--- Emneliste ---")
+    if len(emner) == 0:
+        print("Ingen emner lagt til ennå.")
+    else:
+        for e in emner:
+            print(f"{e['kode']} - {e['navn']} ({e['studiepoeng']} sp) semester {e['semester']}")
+    print("-----------------")
+
+
+# hovedløkken (kjører hele tiden til du velger 3)
+while True:
+    print("\n--- Meny ---")
+    print("1. Legg til emne")
+    print("2. Vis emneliste")
+    print("3. Avslutt")
+
+    valg = input("Velg: ")
+
+    if valg == "1":
+        print("\nLegg til nytt emne:")
+        kode = input("  Emnekode: ")
+        navn = input("  Navn på emnet: ")
+        studiepoeng = input("  Studiepoeng: ")
+        semester = input("  Semester (1-6): ")
+
+        emne = {
+            "kode": kode,
+            "navn": navn,
+            "studiepoeng": studiepoeng,
+            "semester": semester
+        }
+
+        emner.append(emne)
+        print(f"✅ Lagt til emne: {kode}")
+
+    elif valg == "2":
+        vis_emneliste()
+
+    elif valg == "3":
+        print("Avslutter programmet.")
+        break
+
+    else:
+        print("Ugyldig valg, prøv igjen.")
