@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct  9 14:18:54 2025
+
+@author: sarasvortevik
+"""
+
+# Datastrukturene
+emnekoder = []
+semestre = []
+studiepoeng = []
+studieplan = [[], [], [], [], [], []]  # 6 semestre
+
+# Meny
+def vis_meny():
+    print("\nMENY:")
+    print("1. Lag nytt emne")
+    print("2. Legg til emne i studieplan")
+    print("3. Skriv ut alle emner")
+    print("4. Skriv ut studieplan")
+    print("5. Sjekk om studieplanen er gyldig")
+    print("6. Lagre til fil")
+    print("7. Les fra fil")
+    print("8. Avslutt")
+
+# Menyvalg 1
+def lag_nytt_emne():
+    kode = input("Emnekode: ")
+    semester = input("Semester (Høst/Vår): ")
+    poeng = int(input("Studiepoeng: "))
+    emnekoder.append(kode)
+    semestre.append(semester)
+    studiepoeng.append(poeng)
+    print("Emnet er lagret.")
+
+# Menyvalg 2
+def legg_til_emne():
+    kode = input("Hvilken emnekode vil du legge til? ")
+    if kode not in emnekoder:
+        print("Emnet finnes ikke.")
+        return
+    indeks = emnekoder.index(kode)
+    semnr = int(input("Hvilket semester (1-6)? "))
+    if kode in [e for s in studieplan for e in s]:
+        print("Emnet er allerede lagt til.")
+        return
+    if semestre[indeks] == "Høst" and semnr not in [1, 3, 5]:
+        print("Høstemner kan bare legges til i 1, 3 eller 5.")
+        return
+    if semestre[indeks] == "Vår" and semnr not in [2, 4, 6]:
+        print("Våremner kan bare legges til i 2, 4 eller 6.")
+        return
+    total = sum([studiepoeng[emnekoder.index(e)] for e in studieplan[semnr - 1]])
+    if total + studiepoeng[indeks] > 30:
+        print("Semesteret har ikke plass til flere studiepoeng.")
+        return
+    studieplan[semnr - 1].append(kode)
+    print("Emnet ble lagt til i semester", semnr)
+
+# Menyvalg 3
+def skriv_ut_emner():
+    print("\nRegistrerte emner:")
+    for i in range(len(emnekoder)):
+        print(f"{emnekoder[i]} – {semestre[i]} – {studiepoeng[i]} studiepoeng")
+
+# Menyvalg 4
+def skriv_ut_studieplan():
+    print("\nStudieplan:")
+    for i in range(6):
+        print(f"Semester {i+1}: {', '.join(studieplan[i])}")
+
+# Menyvalg 5
+def sjekk_gyldighet():
+    print("\nGyldighetssjekk:")
+    for i in range(6):
+        total = sum([studiepoeng[emnekoder.index(e)] for e in studieplan[i]])
+        if total != 30:
+            print(f"Semester {i+1} er ugyldig: {total} studiepoeng")
+        else:
+            print(f"Semester {i+1} er gyldig")
+
+# Menyvalg 6
+def lagre_til_fil():
+    with open("studieplan.txt", "w") as f:
+        for i in range(len(emnekoder)):
+            f.write(f"{emnekoder[i]},{semestre[i]},{studiepoeng[i]}\n")
+        f.write("PLAN\n")
+        for s in studieplan:
+            f.write(",".join(s) + "\n")
+    print("Data lagret til fil.")
+
+# Menyvalg 7
+def les_fra_fil():
+    global emnekoder, semestre, studiepoeng, studieplan
+    emnekoder, semestre, studiepoeng = [], [], []
+    studieplan = [[], [], [], [], [], []]
+    with open("studieplan.txt", "r") as f:
+        linjer = f.readlines()
+        i = 0
+        while linjer[i].strip() != "PLAN":
+            kode, sem, poeng = linjer[i].strip().split(",")
+            emnekoder.append(kode)
+            semestre.append(sem)
+            studiepoeng.append(int(poeng))
+            i += 1
+        for j in range(6):
+            studieplan[j] = linjer[i + 1 + j].strip().split(",") if linjer[i + 1 + j].strip() else []
+    print("Data hentet fra fil.")
+
+# Menyvalg 8
+def hovedprogram():
+    while True:
+        vis_meny()
+        valg = input("Velg menyvalg: ")
+        if valg == "1":
+            lag_nytt_emne()
+        elif valg == "2":
+            legg_til_emne()
+        elif valg == "3":
+            skriv_ut_emner()
+        elif valg == "4":
+            skriv_ut_studieplan()
+        elif valg == "5":
+            sjekk_gyldighet()
+        elif valg == "6":
+            lagre_til_fil()
+        elif valg == "7":
+            les_fra_fil()
+        elif valg == "8":
+            print("Avslutter...")
+            break
+        else:
+            print("Ugyldig valg.")
+
+hovedprogram()
