@@ -1,6 +1,167 @@
-print ("Menyvalg" \
-"1. lag et nytt emne" \
-"2. legg til et emne i studieplanen" \
-"3. skriv ut ei liste over alle emner i studieplanen"\
-"4. Skriv ut studieplanen med hvilke emner som er i hvert semester"
-)
+# DAT120 – enkel studieplan (meny 1–8 i riktig rekkefølge)
+# 1) Lag et nytt emne
+# 2) Legg til et emne i studieplanen
+# 3) Skriv ut liste over alle registrerte emner
+# 4) Skriv ut studieplanen per semester
+# 5) Sjekk om studieplanen er gyldig
+# 6) Lagre til fil
+# 7) Les fra fil
+# 8) Avslutt
+
+import json
+
+# --- Data ----------------------------------------------------
+# Emneregister: "DAT100" -> {"season": "H"/"V", "credits": 10}
+emner = {}
+# Studieplan: 1..6 -> liste over emnekoder
+plan = {s: [] for s in range(1, 7)}
+
+# --- Hjelpere ------------------------------------------------
+def høst(s): return s in (1, 3, 5)
+def vår(s):  return s in (2, 4, 6)
+
+def season_ok_for_semester(season, semester):
+    return (season == "H" and høst(semester)) or (season == "V" and vår(semester))
+
+def semester_sp(s):
+    return sum(emner[k]["credits"] for k in plan[s])
+
+def emne_i_plan(kode):
+    return any(kode in plan[s] for s in plan)
+
+# --- Menyfunksjoner ------------------------------------------
+def lag_nytt_emne():
+    print("\n[1] Lag et nytt emne")
+    kode = input("Emnekode (f.eks. DAT100): ").strip().upper()
+    if not kode:
+        print("  Emnekode kan ikke være tom.")
+        return
+    if kode in emner:
+        print("  Emnet finnes allerede.")
+        return
+    season = input("Undervises i Høst (H) eller Vår (V): ").strip().upper()
+    if season not in ("H", "V"):
+        print("  Skriv H eller V.")
+        return
+    try:
+        sp = int(input("Studiepoeng (heltall): ").strip())
+    except ValueError:
+        print("  Ugyldig tall.")
+        return
+    if sp <= 0:
+        print("  Studiepoeng må være > 0.")
+        return
+    emner[kode] = {"season": season, "credits": sp}
+    print(f"  ✅ Lagt inn {kode}: {sp} sp, {'Høst' if season=='H' else 'Vår'}.")
+
+def legg_til_i_studieplan():
+    print("\n[2] Legg til et emne i studieplanen")
+    if not emner:
+        print("  Ingen emner registrert (bruk valg 1 først).")
+        return
+    kode = input("Emnekode som skal legges til: ").strip().upper()
+    if kode not in emner:
+        print("  Emnet finnes ikke.")
+        return
+    if emne_i_plan(kode):
+        print("  Emnet er allerede i studieplanen.")
+        return
+    try:
+        sem = int(input("Semester (1–6): ").strip())
+    except ValueError:
+        print("  Ugyldig tall.")
+        return
+    if sem < 1 or sem > 6:
+        print("  Semester må være 1–6.")
+        return
+    if not season_ok_for_semester(emner[kode]["season"], sem):
+        print("  Sesong passer ikke: H = 1/3/5, V = 2/4/6.")
+        return
+    if semester_sp(sem) + emner[kode]["credits"] > 30:
+        print(f"  Over 30 sp i semester {sem}.")
+        return
+    plan[sem].append(kode)
+    print(f"  ✅ La {kode} i semester {sem} (nå {semester_sp(sem)}/30 sp).")
+
+def list_alle_emner():
+    print("\n[3] Liste over alle registrerte emner")
+    if not emner:
+        print("  (tom)")
+        return
+    for k, info in sorted(emner.items()):
+        print(f"  - {k}: {info['credits']} sp, {'Høst' if info['season']=='H' else 'Vår'}")
+
+def skriv_plan_per_semester():
+    print("\n[4] Studieplan per semester")
+    for s in range(1, 7):
+        koder = ", ".join(plan[s]) if plan[s] else "(tom)"
+        print(f"  Sem {s} ({'Høst' if høst(s) else 'Vår'}): {koder} – {semester_sp(s)}/30 sp")
+
+def sjekk_gyldighet():
+    print("\n[5] Gyldighetssjekk")
+    ok = True
+    for s in range(1, 7):
+        sp = semester_sp(s)
+        if sp != 30:
+            ok = False
+            print(f"  - Semester {s}: {sp} sp (skal være 30).")
+    if ok:
+        print("  ✅ Studieplanen er gyldig (alle semestre = 30 sp).")
+
+def lagre_til_fil():
+    print("\n[6] Lagre emner og studieplan til fil")
+    navn = input("Filnavn (f.eks. plan.json): ").strip() or "plan.json"
+    data = {"emner": emner, "plan": plan}
+    try:
+        with open(navn, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print(f"  ✅ Lagret til {navn}")
+    except Exception as e:
+        print("  Klarte ikke å lagre:", e)
+
+def les_fra_fil():
+    print("\n[7] Les inn emner og studieplan fra fil")
+    navn = input("Filnavn: ").strip() or "plan.json"
+    try:
+        with open(navn, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        # enkel robust konvertering
+        global emner, plan
+        emner = {k: {"season": v["season"], "credits": int(v["credits"])}
+                 for k, v in data.get("emner", {}).items()}
+        plan = {int(k): list(v) for k, v in data.get("plan", {}).items()}
+        for s in range(1, 7):
+            plan.setdefault(s, [])
+        print(f"  ✅ Lest fra {navn}")
+    except Exception as e:
+        print("  Klarte ikke å lese filen:", e)
+
+# --- Hovedloop ------------------------------------------------
+def main():
+    while True:
+        print("\nMeny:")
+        print("1. Lag et nytt emne")
+        print("2. Legg til et emne i studieplanen")
+        print("3. Skriv ut ei liste over alle registrerte emner")
+        print("4. Skriv ut studieplanen med hvilke emner som er i hvert semester")
+        print("5. Sjekk om studieplanen er gyldig eller ikke")
+        print("6. Lagre emnene og studieplanen til fil")
+        print("7. Les inn emnene og studieplanen fra fil")
+        print("8. Avslutt")
+        valg = input("Velg (1–8): ").strip()
+
+        if valg == "1": lag_nytt_emne()
+        elif valg == "2": legg_til_i_studieplan()
+        elif valg == "3": list_alle_emner()
+        elif valg == "4": skriv_plan_per_semester()
+        elif valg == "5": sjekk_gyldighet()
+        elif valg == "6": lagre_til_fil()
+        elif valg == "7": les_fra_fil()
+        elif valg == "8":
+            print("Avslutter. Ha det.")
+            break
+        else:
+            print("Ugyldig valg.")
+
+if __name__ == "__main__":
+    main()
