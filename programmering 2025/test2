@@ -1,4 +1,0 @@
-tall = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-
-oddetall = (t for t in tall if t/2 != t//2)
-print("Oddetall er:", list(oddetall))
